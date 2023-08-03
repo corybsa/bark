@@ -15,9 +15,11 @@ pip install git+https://github.com/suno-ai/bark.git
 ## Build
 To build the exe, run 
 ```
-python -m PyInstaller --onefile ./main.py
+pyinstaller --onefile --name wgbark --paths venv/Lib/site-packages --hidden-import=pytorch --collect-data torch --copy-metadata torch --copy-metadata tqdm --copy-metadata regex --copy-metadata requests --copy-metadata packaging --copy-metadata numpy --copy-metadata tokenizers cli.py
 ```
 
 ## Virtual Environment
+```
 python -m venv venv
 ./venv/Scripts/activate
+```
