@@ -3,9 +3,9 @@ import torch
 print(f'PyTorch version: {torch.version}')
 
 if torch.cuda.is_available():
-	print(f'CUDA is available，version is:{torch.version.cuda}')
+	print(f'CUDA is available, version is:{torch.version.cuda}')
 	if torch.backends.cudnn.is_available():
-		print(f'cuDNN is available，version is:{torch.backends.cudnn.version()}')
+		print(f'cuDNN is available, version is:{torch.backends.cudnn.version()}')
 	else:
 		print('cuDNN Not Available')
 else:

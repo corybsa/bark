@@ -1,2 +1,6 @@
+build/
+dist/
 output/
 voice_models/
+
+main.spec
