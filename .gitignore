@@ -2,5 +2,6 @@ build/
 dist/
 output/
 voice_models/
+venv
 
 main.spec
