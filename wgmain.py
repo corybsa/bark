@@ -168,13 +168,17 @@ class VoiceGenerator:
                print('Voice model saved to \'' + self.voice_models_path + '/' + model_name + '\'')
 
 
-generator = VoiceGenerator()
-generator.cls()
-print('Loading voice models...\n')
+def main():
+     generator = VoiceGenerator()
+     generator.cls()
+     print('Loading voice models...\n')
 
-# download and load all models
-preload_models()
-generator.present_menu()
+     # download and load all models
+     preload_models()
+     generator.present_menu()
 
-while(True):
-     generator.prompt()
+     while(True):
+          generator.prompt()
+
+
+main()
