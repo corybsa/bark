@@ -5,28 +5,31 @@ import sys
 import os
 from pathlib import Path
 
+
 class VoiceGenerator:
      def __init__(self):
           self.current_voice_model = None
           self.current_voice_model_name = None
-          self.voice_models_path = 'voice_models'
-          self.generated_output_path = 'output'
+          self.cwd = os.path.dirname(sys.argv[0])
+          self.voice_models_dir = os.path.join(self.cwd, 'voice_models')
+          self.generated_output_dir = os.path.join(self.cwd, 'output')
 
           self.main_menu_items = {
                'Load a voice model': self.load_voice_model,
                'Create a new voice model': self.prompt_for_text_to_speech,
-               'List built-in voice models': self.list_built_in_voice_models,
+               'List built-in voice models': lambda : self.list_built_in_voice_models(self.main_menu_items),
                'Exit': exit
           }
 
           self.prompt_menu_items = {
                'Generate audio file': self.prompt_for_text_to_speech,
                'Save voice model': self.save_voice_model,
+               'List built-in voice models': lambda : self.list_built_in_voice_models(self.prompt_menu_items),
                'Back': lambda : self.present_menu(self.main_menu_items)
           }
 
-          Path('./' + self.voice_models_path).mkdir(exist_ok=True)
-          Path('./' + self.generated_output_path).mkdir(exist_ok=True)
+          Path(self.voice_models_dir).mkdir(exist_ok=True)
+          Path(self.generated_output_dir).mkdir(exist_ok=True)
 
 
      def cls(self):
@@ -34,7 +37,8 @@ class VoiceGenerator:
      
 
      def present_menu(self, menu_items):
-          print('\nChoose an option to continue:')
+          print(f'\n(using model \'{self.current_voice_model_name}\')')
+          print('Choose an option to continue:')
 
           # display menu items
           items = list(menu_items.items())
@@ -75,16 +79,17 @@ class VoiceGenerator:
                model_name = input('Enter a name for the model: ')
                model_name += '.npz'
                
-               save_as_prompt(os.path.join(self.voice_models_path, model_name), self.current_voice_model)
-               print('Voice model saved to \'' + self.voice_models_path + '/' + model_name + '\'')
+               filepath = os.path.join(self.voice_models_dir, model_name)
+               save_as_prompt(filepath, self.current_voice_model)
+               print('Voice model saved to ' + filepath + '.\n')
 
 
      def load_voice_model(self):
           # get saved voice models from the voice_models folder
-          voices = [f for f in os.listdir(self.voice_models_path) if os.path.isfile(os.path.join(self.voice_models_path, f)) and f.endswith('.npz')]
+          voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
           
           if len(voices) == 0:
-               print('\nNo voice models found in ./' + self.voice_models_path + '.\n')
+               print('\nNo voice models found in ' + self.voice_models_dir + '.\n')
                self.present_menu(self.main_menu_items)
           else:
                print('\nSelect a voice model to load:')
@@ -110,18 +115,21 @@ class VoiceGenerator:
                     self.load_voice_model()
                     return
                     
-               with np.load(os.path.join(self.voice_models_path, voices[voice_choice - 1])) as data:
+               with np.load(os.path.join(self.voice_models_dir, voices[voice_choice - 1])) as data:
                     self.current_voice_model_name = voices[voice_choice - 1].replace('.npz', '')
                     self.current_voice_model = {
                          'semantic_prompt': data['semantic_prompt'],
                          'coarse_prompt': data['coarse_prompt'],
                          'fine_prompt': data['fine_prompt']
                     }
-                    
-               self.prompt_for_text_to_speech()
+               
+               self.present_menu(self.prompt_menu_items)
 
 
      def prompt_for_text_to_speech(self):
+          # TODO: list all built-in voice models and allow the user to choose one
+
+
           if self.current_voice_model is None:
                print('\nEnter a voice preset or press just enter for default voice (default is v2/en_speaker_2)')
                print('This voice will be used as a seed. On subsequent runs during this session, the model will grow.')
@@ -151,12 +159,19 @@ class VoiceGenerator:
           
           filename = self.prompt_for_filename()
           print('Generating audio file...')
-          (model, audio) = generate_audio(text_prompt, history_prompt=self.current_voice_model, output_full=True)
-          self.current_voice_model = model
 
-          # save audio to disk
-          write_wav(os.path.join(self.generated_output_path, filename), SAMPLE_RATE, audio)
-          print('File written to \'' + self.generated_output_path + '/' + filename + '\'\n\n')
+          try:
+               (model, audio) = generate_audio(text_prompt, history_prompt=self.current_voice_model, output_full=True)
+               self.current_voice_model = model
+
+               # save audio to disk
+               write_wav(os.path.join(self.generated_output_dir, filename), SAMPLE_RATE, audio)
+               print('File written to \'' + self.generated_output_dir + '/' + filename + '\'\n\n')
+          except ValueError as e:
+               print('Error: ' + str(e) + '\n')
+               self.current_voice_model = None
+               self.current_voice_model_name = None
+               return
      
 
      def prompt_for_filename(self):
@@ -182,10 +197,9 @@ def main():
      preload_models()
      generator.cls()
      print('Welcome to the Wakeful Games text to speech generator!\n')
-     generator.present_menu(generator.main_menu_items)
 
      while(True):
-          generator.prompt_for_text_to_speech()
+          generator.present_menu(generator.main_menu_items)
 
 
 main()
