@@ -10,22 +10,24 @@ class VoiceGenerator:
      def __init__(self):
           self.current_voice_model = None
           self.current_voice_model_name = None
+          self.text_temp = 0.7
+          self.waveform_temp = 0.7
+          self.is_using_built_in_model = True
           self.cwd = os.path.dirname(sys.argv[0])
           self.voice_models_dir = os.path.join(self.cwd, 'voice_models')
           self.generated_output_dir = os.path.join(self.cwd, 'output')
 
-          self.main_menu_items = {
+          self.main_menu = {
                'Load a voice model': self.load_voice_model,
-               'Create a new voice model': self.prompt_for_text_to_speech,
-               'List built-in voice models': lambda : self.list_built_in_voice_models(self.main_menu_items),
+               'Create a new voice model': self.prompt_for_built_in_voice_models,
+               'Continue with current voice model': self.continue_with_current_voice_model,
                'Exit': exit
           }
 
-          self.prompt_menu_items = {
-               'Generate audio file': self.prompt_for_text_to_speech,
-               'Save voice model': self.save_voice_model,
-               'List built-in voice models': lambda : self.list_built_in_voice_models(self.prompt_menu_items),
-               'Back': lambda : self.present_menu(self.main_menu_items)
+          self.generate_audio_menu = {
+               'Generate audio': self.prompt_for_text_to_speech,
+               'Save current voice model': self.save_voice_model,
+               'Back': lambda : self.present_menu(self.main_menu)
           }
 
           Path(self.voice_models_dir).mkdir(exist_ok=True)
@@ -37,7 +39,7 @@ class VoiceGenerator:
      
 
      def present_menu(self, menu_items):
-          print(f'\n(using model \'{self.current_voice_model_name}\')')
+          print(f'\n(using voice model \'{self.current_voice_model_name}\')')
           print('Choose an option to continue:')
 
           # display menu items
@@ -49,13 +51,13 @@ class VoiceGenerator:
           try:
                choice = int(input('Enter your choice: '))
           except:
-               print('Invalid choice. Please try again.\n')
+               print(f'\nInvalid choice. Please enter a number between 1 and {len(menu_items.items())}.\n')
                self.present_menu(menu_items)
                return
 
           # show error if they entered a number that is not in the menu
           if choice < 1 or choice > len(menu_items):
-               print('Invalid choice. Please try again.\n')
+               print(f'\nInvalid choice. Please enter a number between 1 and {len(menu_items.items())}.\n')
                self.present_menu(menu_items)
                return
 
@@ -63,22 +65,33 @@ class VoiceGenerator:
           items[choice - 1][1]()
      
 
-     def list_built_in_voice_models(self, menu_items):
-          sorted_prompts = sorted(generation.ALLOWED_PROMPTS)
-
-          for item in sorted_prompts:
-               print(item)
-          
-          self.present_menu(menu_items)
-     
-
      def save_voice_model(self):
-          should_save_voice_model = input('\nDo you want to save this voice model (y/n)? ') == 'y'
-
-          if should_save_voice_model:
+          if self.is_using_built_in_model:
                model_name = input('Enter a name for the model: ')
                model_name += '.npz'
                
+               filepath = os.path.join(self.voice_models_dir, model_name)
+
+               try:
+                    save_as_prompt(filepath, self.current_voice_model)
+               except:
+                    print('\nPlease generate at least one audio sample before saving the voice model.')
+                    self.present_menu(self.generate_audio_menu)
+                    return
+
+               print('\nVoice model saved to ' + filepath + '.')
+               
+               with np.load(filepath) as data:
+                    self.current_voice_model_name = model_name.replace('.npz', '')
+                    self.current_voice_model = {
+                         'semantic_prompt': data['semantic_prompt'],
+                         'coarse_prompt': data['coarse_prompt'],
+                         'fine_prompt': data['fine_prompt']
+                    }
+               
+               print(f'Changed current voice model to {model_name.replace(".npz", "")}.')
+               self.is_using_built_in_model = False
+          else:
                filepath = os.path.join(self.voice_models_dir, model_name)
                save_as_prompt(filepath, self.current_voice_model)
                print('Voice model saved to ' + filepath + '.\n')
@@ -90,7 +103,7 @@ class VoiceGenerator:
           
           if len(voices) == 0:
                print('\nNo voice models found in ' + self.voice_models_dir + '.\n')
-               self.present_menu(self.main_menu_items)
+               self.present_menu(self.main_menu)
           else:
                print('\nSelect a voice model to load:')
                for i in range(len(voices)):
@@ -101,17 +114,17 @@ class VoiceGenerator:
                try:
                     voice_choice = int(input('Enter your choice: '))
                except:
-                    print('Invalid choice. Please try again.')
+                    print(f'\nInvalid choice. Please enter a number between 1 and {len(voices)}.')
                     self.load_voice_model()
                     return
                
                # user selected back, return to main menu
                if voice_choice == len(voices) + 1:
-                    self.present_menu(self.main_menu_items)
+                    self.present_menu(self.main_menu)
                     return
                # show error if they entered a number that is not in the menu
                elif voice_choice < 1 or voice_choice > len(voices):
-                    print('Invalid choice. Please try again.')
+                    print(f'\nInvalid choice. Please enter a number between 1 and {len(voices)}.')
                     self.load_voice_model()
                     return
                     
@@ -123,21 +136,67 @@ class VoiceGenerator:
                          'fine_prompt': data['fine_prompt']
                     }
                
-               self.present_menu(self.prompt_menu_items)
+               self.present_menu(self.generate_audio_menu)
+     
+
+     def continue_with_current_voice_model(self):
+          if self.current_voice_model is None:
+               print('\nNo voice model loaded.')
+               self.present_menu(self.main_menu)
+               return
+          else:
+               self.present_menu(self.generate_audio_menu)
+
+
+     def prompt_for_built_in_voice_models(self):
+          print('\nEnter a voice preset or leave blank for default voice (default is v2/en_speaker_2)')
+
+          sorted_prompts = sorted(generation.ALLOWED_PROMPTS)
+
+          for i in range(len(sorted_prompts)):
+               print(str(i + 1) + ': ' + sorted_prompts[i])
+          
+          print(str(len(sorted_prompts) + 1) + ': Back')
+
+          choice = input('Enter your choice: ')
+
+          # user selected default
+          if choice == '':
+               self.current_voice_model = 'v2/en_speaker_2'
+               self.current_voice_model_name = 'v2/en_speaker_2'
+               self.is_using_built_in_model = True
+               self.present_menu(self.generate_audio_menu)
+               return
+          
+          try:
+               choice_int = int(choice)
+          except:
+               print(f'\nInvalid choice. Please enter a number between 1 and {len(sorted_prompts)}.')
+               self.prompt_for_built_in_voice_models()
+               return
+          
+          # user selected back, return to main menu
+          if choice_int == len(sorted_prompts) + 1:
+               self.present_menu(self.main_menu)
+               return
+          # show error if they entered a number that is not in the menu
+          elif choice_int < 1 or choice_int > len(sorted_prompts):
+               print(f'\nInvalid choice. Please enter a number between 1 and {len(sorted_prompts)}.')
+               self.prompt_for_built_in_voice_models()
+               return
+          
+          self.current_voice_model = sorted_prompts[choice_int - 1]
+          self.current_voice_model_name = sorted_prompts[choice_int - 1]
+          self.is_using_built_in_model = True
+
+          self.present_menu(self.generate_audio_menu)
 
 
      def prompt_for_text_to_speech(self):
-          # TODO: list all built-in voice models and allow the user to choose one
-
-
           if self.current_voice_model is None:
-               print('\nEnter a voice preset or press just enter for default voice (default is v2/en_speaker_2)')
-               print('This voice will be used as a seed. On subsequent runs during this session, the model will grow.')
-               print('You can find voice presets here. Use the value in the \'Prompt Name\' column')
-               self.current_voice_model = input('https://suno-ai.notion.site/8b8e8749ed514b0cbf3f699013548683?v=bc67cff786b04b50b3ceb756fd05f68c\n')
-
-               if self.current_voice_model == '':
-                    self.current_voice_model = 'v2/en_speaker_2'
+               print('\nNo voice model loaded.')
+               self.present_menu(self.main_menu)
+               return
 
           print('\nEnter text to convert to speech')
           print('Notes:')
@@ -153,15 +212,20 @@ class VoiceGenerator:
                return
           # ctrl+x
           elif '\x18' in text_prompt or text_prompt == '':
-               self.save_voice_model()
-               self.present_menu(self.prompt_menu_items)
+               self.present_menu(self.generate_audio_menu)
                return
           
           filename = self.prompt_for_filename()
-          print('Generating audio file...')
+          print('Generating voice model and audio file...')
 
           try:
-               (model, audio) = generate_audio(text_prompt, history_prompt=self.current_voice_model, output_full=True)
+               (model, audio) = generate_audio(
+                    text_prompt,
+                    history_prompt=self.current_voice_model,
+                    text_temp=self.text_temp,
+                    waveform_temp=self.waveform_temp,
+                    output_full=True
+               )
                self.current_voice_model = model
 
                # save audio to disk
@@ -172,17 +236,16 @@ class VoiceGenerator:
                self.current_voice_model = None
                self.current_voice_model_name = None
                return
+          
+          self.present_menu(self.generate_audio_menu)
      
 
      def prompt_for_filename(self):
-          filename = input('\nEnter a filename for the audio (or ctrl+x to return to main menu): ')
+          filename = input('\nEnter a filename for the audio (or ctrl+x to cancel): ')
 
           # ctrl+x
           if filename == '\x18':
-               if self.current_voice_model is not None:
-                    self.save_voice_model()
-
-               self.present_menu(self.main_menu_items)
+               self.present_menu(self.main_menu)
                return
 
           return filename + '.wav'
@@ -191,7 +254,7 @@ class VoiceGenerator:
 def main():
      generator = VoiceGenerator()
      generator.cls()
-     print('Loading voice models...\n')
+     print('Loading voice models...')
 
      # download and load all models
      preload_models()
@@ -199,7 +262,8 @@ def main():
      print('Welcome to the Wakeful Games text to speech generator!\n')
 
      while(True):
-          generator.present_menu(generator.main_menu_items)
+          generator.present_menu(generator.main_menu)
 
 
-main()
+if __name__ == "__main__":
+     main()

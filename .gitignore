@@ -154,3 +154,6 @@ cython_debug/
 
 # npz files (for voice models)
 *.npz
+
+# audio output
+output/
