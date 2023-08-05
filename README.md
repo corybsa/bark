@@ -7,7 +7,7 @@ For Windows it would be:
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-then run installing from requirements.txt:
+then install packages from requirements.txt:
 ```
 pip install -r requirements.txt
 ```
