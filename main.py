@@ -261,6 +261,11 @@ class VoiceGenerator:
                self.prompt_for_text_temp()
                return
           
+          if text_temp < 0 or text_temp > 1:
+               self.print('\nInvalid temperature. Please enter a number between 0 and 1.', Fore.RED)
+               self.prompt_for_text_temp()
+               return
+          
           self.text_temp = text_temp
           self.present_menu(self.generate_audio_menu)
 
@@ -276,6 +281,11 @@ class VoiceGenerator:
           try:
                waveform_temp = float(waveform_temp)
           except:
+               self.print('\nInvalid temperature. Please enter a number between 0 and 1.', Fore.RED)
+               self.prompt_for_waveform_temp()
+               return
+          
+          if waveform_temp < 0 or waveform_temp > 1:
                self.print('\nInvalid temperature. Please enter a number between 0 and 1.', Fore.RED)
                self.prompt_for_waveform_temp()
                return
