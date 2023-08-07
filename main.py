@@ -22,7 +22,7 @@ class VoiceGenerator:
                'Load a voice model': self.load_voice_model,
                'Create a new voice model': self.prompt_for_built_in_voice_models,
                'Continue with current voice model': self.continue_with_current_voice_model,
-               'Exit': exit
+               'Exit': sys.exit
           }
 
           self.generate_audio_menu = {
