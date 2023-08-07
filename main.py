@@ -76,9 +76,10 @@ class VoiceGenerator:
 
      def save_voice_model(self):
           if self.is_using_built_in_model:
-               self.generate_voice_model('generating new model')
+               if type(self.current_voice_model) == str:
+                    self.generate_voice_model('generating new model')
 
-               model_name = input('Enter a name for the model: ')
+               model_name = input('\nEnter a name for the model: ')
                model_name += '.npz'
                
                filepath = os.path.join(self.voice_models_dir, model_name)
@@ -363,7 +364,7 @@ class VoiceGenerator:
                else:
                     self.print('\nVoice model generated', Fore.GREEN)
           except ValueError as e:
-               self.print('Error: ' + str(e) + '\n', Fore.RED)
+               self.print('\nError: ' + str(e) + '\n', Fore.RED)
                self.current_voice_model = None
                self.current_voice_model_name = None
                return
