@@ -47,7 +47,7 @@ class VoiceGenerator:
 
      def present_menu(self, menu_items):
           self.print(f'\n(using voice model \'{self.current_voice_model_name}\')', Fore.CYAN)
-          self.print(f'(text generation temperature: {self.text_temp}, waveform generation temperature: {self.waveform_temp})', Fore.CYAN)
+          self.print(f'(text generation temperature: {self.text_temp}, waveform generation temperature: {self.waveform_temp})\n', Fore.CYAN)
           self.print('Choose an option to continue:')
 
           # display menu items
@@ -247,7 +247,12 @@ class VoiceGenerator:
 
 
      def prompt_for_text_temp(self):
-          text_temp = input('\nEnter a text temperature (or ctrl+x to cancel): ')
+          self.print('\nText temperature is a number between 0 and 1 that controls how random the generated speech is.')
+          self.print('The closer to 1, the more random the speech will be. The closer to 0, the more similar to the input text the speech will be.')
+          self.print('This number is usually between 0.5 and 0.9 (default is 0.7).')
+          self.print('\nLeave input blank for default (0.7).', Fore.CYAN)
+          self.print('Use ctrl+x to cancel.', Fore.YELLOW)
+          text_temp = input(f'\nEnter a text temperature (currently {self.text_temp}): ')
 
           # ctrl+x
           if text_temp == '\x18':
@@ -271,7 +276,12 @@ class VoiceGenerator:
 
 
      def prompt_for_waveform_temp(self):
-          waveform_temp = input('\nEnter a waveform temperature (or ctrl+x to cancel): ')
+          self.print('\nWaveform temperature is a number between 0 and 1 that controls how random the generated audio is.')
+          self.print('The closer to 1, the more random the audio will be. The closer to 0, the more similar to the input text the audio will be.')
+          self.print('This number is usually between 0.5 and 0.9 (default is 0.7).')
+          self.print('\nLeave input blank for default (0.7).', Fore.CYAN)
+          self.print('Use ctrl+x to cancel.', Fore.YELLOW)
+          waveform_temp = input(f'\nEnter a waveform temperature (currently {self.waveform_temp}): ')
 
           # ctrl+x
           if waveform_temp == '\x18':
