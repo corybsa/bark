@@ -27,10 +27,10 @@ python -m venv venv
 ## Nuitka
 debug:
 ```
-nuitka --standalone --output-dir=dist/ --output-filename=bark main.py
+nuitka --standalone --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
 ```
 
 prod:
 ```
-nuitka --standalone --onefile --output-dir=dist/ --output-filename=bark main.py
+nuitka --standalone --onefile --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
 ```
