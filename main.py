@@ -14,9 +14,9 @@ class VoiceGenerator:
           self.text_temp = 0.7
           self.waveform_temp = 0.7
           self.is_using_built_in_model = True
-          self.cwd = os.path.dirname(sys.argv[0])
-          self.voice_models_dir = os.path.join(self.cwd, 'voice_models')
-          self.generated_output_dir = os.path.join(self.cwd, 'output')
+          self.bark_dir = os.path.dirname(__file__)
+          self.voice_models_dir = os.path.join(self.bark_dir, 'voice_models')
+          self.generated_output_dir = os.path.join(self.bark_dir, 'output')
 
           self.main_menu = {
                'Load a voice model': self.load_voice_model,
