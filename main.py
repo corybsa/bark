@@ -26,7 +26,8 @@ class VoiceGenerator:
           }
 
           self.generate_audio_menu = {
-               'Generate audio': self.prompt_for_text_to_speech,
+               'Generate audio (single line)': self.prompt_for_single_line_text_to_speech,
+               'Generate audio (multi-line)': self.prompt_for_multiline_text_to_speech,
                'Save current voice model': self.save_voice_model,
                'Adjust text generation temperature': self.prompt_for_text_temp,
                'Adjust waveform generation temperature': self.prompt_for_waveform_temp,
@@ -203,7 +204,7 @@ class VoiceGenerator:
           self.present_menu(self.generate_audio_menu)
 
 
-     def prompt_for_text_to_speech(self):
+     def prompt_for_multiline_text_to_speech(self):
           if self.current_voice_model is None:
                print('\nNo voice model loaded.')
                self.present_menu(self.main_menu)
@@ -221,6 +222,7 @@ class VoiceGenerator:
 
           # ctrl+r
           if '\x12' in text_prompt:
+               self.prompt_for_multiline_text_to_speech()
                return
           # ctrl+x
           elif '\x18' in text_prompt or text_prompt == '':
@@ -228,12 +230,44 @@ class VoiceGenerator:
                return
           elif text_prompt == '':
                self.print('\nPlease enter some text.', Fore.RED)
-               self.prompt_for_text_to_speech()
+               self.prompt_for_multiline_text_to_speech()
                return
           
           self.generate_voice_model(text_prompt, save_audio=True)
           self.present_menu(self.generate_audio_menu)
      
+
+     def prompt_for_single_line_text_to_speech(self):
+          if self.current_voice_model is None:
+               print('\nNo voice model loaded.')
+               self.present_menu(self.main_menu)
+               return
+
+          self.print('\nNotes:')
+          self.print('  - To suggest that the voice sing, add a music note (♪) to the start and end of the line.')
+          self.print('  - To start over press ctrl+r then enter at any point.')
+          self.print('  - To cancel and return to the main menu press ctrl+x and enter at any point.')
+          self.print('\nEnter text to convert to speech')
+          self.print('---------')
+
+          text_prompt = input()
+
+          # ctrl+r
+          if '\x12' in text_prompt:
+               self.prompt_for_single_line_text_to_speech()
+               return
+          # ctrl+x
+          elif '\x18' in text_prompt:
+               self.present_menu(self.generate_audio_menu)
+               return
+          elif text_prompt == '':
+               self.print('\nPlease enter some text.', Fore.RED)
+               self.prompt_for_single_line_text_to_speech()
+               return
+          
+          self.generate_voice_model(text_prompt, save_audio=True)
+          self.present_menu(self.generate_audio_menu)
+
 
      def prompt_for_filename(self):
           filename = input('\nEnter a filename for the audio (or ctrl+x to cancel): ')
