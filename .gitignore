@@ -153,6 +153,7 @@ dmypy.json
 cython_debug/
 
 # npz files (for voice models)
+voice_models/
 *.npz
 
 # audio output
