@@ -112,7 +112,7 @@ class VoiceGenerator:
           voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
           
           if len(voices) == 0:
-               self.print(f'\nNo voice models found in {self.voice_models_dir}.\n', Fore.RED)
+               self.print(f'\nNo voice models found in {self.voice_models_dir}.', Fore.RED)
                self.present_menu(self.main_menu)
           else:
                print('\nSelect a voice model to load:')
