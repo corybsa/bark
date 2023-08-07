@@ -2,20 +2,24 @@ import sys
 import os
 from pathlib import Path
 
-print(f'sys.argv[0]: {os.path.dirname(sys.argv[0])}')
-print(f'__file__: {os.path.dirname(__file__)}')
-print(f'os.getcwd(): {os.getcwd()}')
 
-test_dir = 'test_dir'
-cwd = os.path.dirname(sys.argv[0])
-test_path = os.path.join(cwd, test_dir)
+def create_file(prop, value):
+    print(f'{prop}: {os.path.dirname(value)}')
+    test_dir = f'test_{prop}_dir'
+    cwd = os.path.dirname(value)
+    test_path = os.path.join(cwd, test_dir)
 
-print(f'creating directory \'{test_path}\'...')
-Path(test_dir).mkdir(exist_ok=True)
+    print(f'creating directory \'{test_path}\'...')
+    Path(test_dir).mkdir(exist_ok=True)
 
-data_dir = os.path.join(cwd, 'test_dir')
-file_path = os.path.join(data_dir, 'test.txt')
+    file_path = os.path.join(test_path, 'test.txt')
 
-print('creating test.txt...')
-with open(file_path, 'w') as f:
-    f.write('hello world')
+    print(f'creating file \'{file_path}\'...')
+    with open(file_path, 'w') as f:
+        f.write('hello world')
+
+
+if __name__ == '__main__':
+    create_file('sys.argv[0]', sys.argv[0])
+    print('\n\n')
+    create_file('__file__', __file__)
