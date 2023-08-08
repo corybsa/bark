@@ -21,5 +21,3 @@ def create_file(prop, value):
 
 if __name__ == '__main__':
     create_file('sys.argv[0]', sys.argv[0])
-    print('\n\n')
-    create_file('__file__', __file__)

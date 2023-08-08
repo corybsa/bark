@@ -1,5 +1,5 @@
-## Installation
-### Torch and CUDA
+## Running the project locally
+### Install Torch and CUDA
 Go to [https://pytorch.org/get-started/locally/]() and run the command that is generated.
 
 For Windows it would be:
@@ -7,7 +7,8 @@ For Windows it would be:
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
 ```
 
-then install packages from requirements.txt:
+### Install requirements
+Then install packages from requirements.txt:
 ```
 pip install -r requirements.txt
 ```
@@ -22,12 +23,12 @@ pyinstaller --onefile --name bark --paths venv/Lib/site-packages --hidden-import
 ### Nuitka
 debug:
 ```
-nuitka --standalone --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
+nuitka --lto=no --mingw64 --standalone --output-dir=dist/ --output-filename=bark --include-package-data=bark --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow main.py
 ```
 
 prod:
 ```
-nuitka --onefile --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
+nuitka --lto=no --mingw64 --onefile --output-dir=dist/ --output-filename=main --include-package-data=bark --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow main.py
 ```
 
 ## Virtual Environment
