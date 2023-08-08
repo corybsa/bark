@@ -5,6 +5,7 @@ import sys
 import os
 from pathlib import Path
 from colorama import Fore, Style
+from threading import Thread
 
 
 class VoiceGenerator:
@@ -36,13 +37,25 @@ class VoiceGenerator:
 
       Path(self.voice_models_dir).mkdir(exist_ok=True)
       Path(self.generated_output_dir).mkdir(exist_ok=True)
-      
-      self.cls()
-      self.print(f'Loading voice models...', Fore.CYAN)
 
-      # download and load all models
+
+   def preload_models(self, callback=None):
+      Thread(target=self.preload_models_thread, args=(callback,)).start()
+
+
+   def preload_models_thread(self, callback=None):
       preload_models()
-      self.cls()
+
+      if(callback):
+         callback()
+
+
+   def set_text_temp(self, value):
+      self.text_temp = value
+   
+
+   def set_waveform_temp(self, value):
+      self.waveform_temp = value
 
 
    def cls(self):
