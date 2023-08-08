@@ -12,7 +12,7 @@ then install packages from requirements.txt:
 pip install -r requirements.txt
 ```
 
-## Build
+## Building From Source
 
 ### PyInstaller
 To build the exe, run 
@@ -27,7 +27,7 @@ nuitka --standalone --output-dir=dist/ --output-filename=bark --include-package-
 
 prod:
 ```
-nuitka --standalone --onefile --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
+nuitka --onefile --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
 ```
 
 ## Virtual Environment
