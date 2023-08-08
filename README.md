@@ -23,12 +23,17 @@ pyinstaller --onefile --name bark --paths venv/Lib/site-packages --hidden-import
 ### Nuitka
 debug:
 ```
-nuitka --lto=no --mingw64 --standalone --output-dir=dist/ --output-filename=bark --include-package-data=bark --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow main.py
+nuitka --mingw64 --output-dir=dist/ --output-filename=bark --follow-imports src/main.py
 ```
 
-prod:
+standalone:
 ```
-nuitka --lto=no --mingw64 --onefile --output-dir=dist/ --output-filename=main --include-package-data=bark --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow main.py
+nuitka --mingw64 --standalone --output-dir=dist/ --output-filename=bark src/main.py
+```
+
+onefile:
+```
+nuitka --mingw64 --onefile --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 ## Virtual Environment
