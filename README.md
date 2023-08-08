@@ -13,18 +13,13 @@ pip install -r requirements.txt
 ```
 
 ## Build
+
+### PyInstaller
 To build the exe, run 
 ```
 pyinstaller --onefile --name bark --paths venv/Lib/site-packages --hidden-import=pytorch --collect-data torch --copy-metadata torch --copy-metadata tqdm --copy-metadata regex --copy-metadata requests --copy-metadata packaging --copy-metadata numpy --copy-metadata tokenizers --copy-metadata filelock --copy-metadata huggingface-hub --copy-metadata safetensors main.py
 ```
-
-## Virtual Environment
-```
-python -m venv venv
-./venv/Scripts/activate
-```
-
-## Nuitka
+### Nuitka
 debug:
 ```
 nuitka --standalone --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
@@ -33,4 +28,10 @@ nuitka --standalone --output-dir=dist/ --output-filename=bark --include-package-
 prod:
 ```
 nuitka --standalone --onefile --output-dir=dist/ --output-filename=bark --include-package-data=bark main.py
+```
+
+## Virtual Environment
+```
+python -m venv venv
+./venv/Scripts/activate
 ```
