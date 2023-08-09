@@ -19,6 +19,7 @@ class VoiceGenerator:
     self.voice_models_dir = os.path.join(self.bark_dir, 'voice_models')
     self.generated_output_dir = os.path.join(self.bark_dir, 'output')
     self.save_as_name = 'custom voice model'
+    self.should_save_to_file = False
 
     Path(self.voice_models_dir).mkdir(exist_ok=True)
     Path(self.generated_output_dir).mkdir(exist_ok=True)
@@ -36,12 +37,10 @@ class VoiceGenerator:
       callback()
 
 
-  def set_text_temp(self, value):
-    self.text_temp = value
-   
-
-  def set_waveform_temp(self, value):
-     self.waveform_temp = value
+  def get_all_voice_models(self):
+    voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
+    voices += list(sorted(generation.ALLOWED_PROMPTS))
+    return voices
 
 
   def set_voice_model(self, voice_model_name: str):
@@ -67,12 +66,25 @@ class VoiceGenerator:
       return self.current_voice_model_name
     else:
       return self.current_voice_model
+
+
+  def set_text_temp(self, value: float):
+    self.text_temp = value
+   
+
+  def set_waveform_temp(self, value: float):
+    self.waveform_temp = value
+
+
+  def set_should_save_to_file(self, value: bool):
+    self.should_save_to_file = value
    
 
   def save_voice_model(self):
     if self.is_using_built_in_model:
-      filepath = os.path.join(self.voice_models_dir, self.current_voice_model_name)
-      built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', 'v2' if 'v2' in self.current_voice_model_name else '', self.current_voice_model_name + '.npz')
+      filepath = os.path.join(self.voice_models_dir, self.current_voice_model_name.replace('/', '').replace('\\', '') + '.npz')
+      filepath = filepath.replace('v2', 'custom_')
+      built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', self.current_voice_model_name + '.npz')
 
       with np.load(built_in_model) as data:
         self.current_voice_model = {
@@ -84,18 +96,15 @@ class VoiceGenerator:
       save_as_prompt(filepath, self.current_voice_model)
       
       self.is_using_built_in_model = False
+
+      return os.path.abspath(filepath)
     else:
-      filepath = os.path.join(self.voice_models_dir, self.current_voice_model_name + '.npz')
+      filepath = os.path.join(self.voice_models_dir, self.current_voice_model_name.replace('v2', 'custom_').replace('/', '').replace('\\', '') + '.npz')
       save_as_prompt(filepath, self.current_voice_model)
+      return os.path.abspath(filepath)
 
 
-  def get_all_voice_models(self):
-    voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
-    voices += list(sorted(generation.ALLOWED_PROMPTS))
-    return voices
-
-
-  def generate_voice_model(self, text_prompt: str, save_audio=False, callback=None):
+  def generate_voice_model(self, text_prompt: str, callback=None):
     try:
       (model, audio) = generate_audio(
         text_prompt,
@@ -105,19 +114,21 @@ class VoiceGenerator:
         silent=True,
         output_full=True
       )
-      
+
       self.current_voice_model = model
 
       # save audio to disk
-      if save_audio:
-        filename = self.current_voice_model_name + '.wav'
+      if self.should_save_to_file:
+        filename = self.current_voice_model_name
+        filename = filename.replace('v2', 'custom_')
+        filename = filename.replace('\\', '')
+        filename = filename.replace('/', '')
+        filename += '.wav'
         filepath = os.path.join(self.generated_output_dir, filename)
         write_wav(filepath, SAMPLE_RATE, audio)
+        callback(os.path.abspath(filepath))
     except ValueError as e:
       # self.print('\nError: ' + str(e) + '\n', Fore.RED)
       self.current_voice_model = None
       self.current_voice_model_name = None
       return
-    finally:
-      if callback is not None:
-        callback()
