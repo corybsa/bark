@@ -15,11 +15,6 @@ pip install -r requirements.txt
 
 ## Building From Source
 
-### PyInstaller
-To build the exe, run 
-```
-pyinstaller --onefile --name bark --paths venv/Lib/site-packages --hidden-import=pytorch --collect-data torch --copy-metadata torch --copy-metadata tqdm --copy-metadata regex --copy-metadata requests --copy-metadata packaging --copy-metadata numpy --copy-metadata tokenizers --copy-metadata filelock --copy-metadata huggingface-hub --copy-metadata safetensors main.py
-```
 ### Nuitka
 debug:
 ```
