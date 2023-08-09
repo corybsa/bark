@@ -40,7 +40,8 @@ class VoiceGenerator:
 
 
    def preload_models(self, callback=None):
-      Thread(target=self.preload_models_thread, args=(callback,)).start()
+      callback()
+      # Thread(target=self.preload_models_thread, args=(callback,)).start()
 
 
    def preload_models_thread(self, callback=None):
@@ -56,6 +57,31 @@ class VoiceGenerator:
 
    def set_waveform_temp(self, value):
       self.waveform_temp = value
+
+
+   def set_voice_model(self, voice_model_name: str):
+      # if voice_model_name ends with .npz, it's a custom voice model
+      if(voice_model_name.endswith('.npz')):
+         self.current_voice_model = os.path.join(self.voice_models_dir, voice_model_name)
+         self.is_using_built_in_model = False
+
+         with np.load(os.path.join(self.voice_models_dir, voice_model_name)) as data:
+            self.current_voice_model_name = voice_model_name.replace('.npz', '')
+            self.current_voice_model = {
+              'semantic_prompt': data['semantic_prompt'],
+              'coarse_prompt': data['coarse_prompt'],
+              'fine_prompt': data['fine_prompt']
+            }
+      else:
+         self.current_voice_model_name = voice_model_name
+         self.is_using_built_in_model = True
+
+
+   def get_voice_model(self):
+      if self.is_using_built_in_model:
+         return self.current_voice_model_name
+      else:
+         return self.current_voice_model
 
 
    def cls(self):
@@ -181,6 +207,12 @@ class VoiceGenerator:
          self.present_menu(self.generate_audio_menu)
 
 
+   def get_all_voice_models(self):
+      voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
+      voices += list(sorted(generation.ALLOWED_PROMPTS))
+      return voices
+
+   
    def prompt_for_built_in_voice_models(self):
       self.print('\nA list of all the built-in preset voice models:')
 
@@ -359,7 +391,7 @@ class VoiceGenerator:
       self.present_menu(self.generate_audio_menu)
 
 
-   def generate_voice_model(self, text_prompt, save_audio=False):
+   def generate_voice_model(self, text_prompt: str, save_audio=False, callback=None):
       if save_audio:
          filename = self.prompt_for_filename()
          self.print('\nGenerating voice model and audio file...', Fore.CYAN)
@@ -372,6 +404,7 @@ class VoiceGenerator:
           history_prompt=self.current_voice_model,
           text_temp=self.text_temp,
           waveform_temp=self.waveform_temp,
+          silent=True,
           output_full=True
          )
          self.current_voice_model = model
@@ -388,3 +421,6 @@ class VoiceGenerator:
          self.current_voice_model = None
          self.current_voice_model_name = None
          return
+      finally:
+         if callback is not None:
+            callback()
