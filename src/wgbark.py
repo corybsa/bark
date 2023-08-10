@@ -140,8 +140,7 @@ class VoiceGenerator:
     self.current_voice_model = model
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
-    write_wav(filepath, SAMPLE_RATE, self.generated_audio_data)
-    # write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
+    write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
     print(f'DEBUG: generated audio saved to {filepath}')
 
     callback()
