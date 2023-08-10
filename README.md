@@ -18,17 +18,17 @@ pip install -r requirements.txt
 ### Nuitka
 debug:
 ```
-nuitka --mingw64 --output-dir=dist/ --output-filename=bark --follow-imports src/main.py
+nuitka --mingw64 --include-package-data=bark --output-dir=dist/ --output-filename=bark --follow-imports src/main.py
 ```
 
 standalone:
 ```
-nuitka --mingw64 --standalone --disable-console --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --mingw64 --standalone --include-package-data=bark --disable-console --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 onefile:
 ```
-nuitka --mingw64 --onefile --disable-console --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --mingw64 --onefile --include-package-data=bark --disable-console --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 ## Virtual Environment
