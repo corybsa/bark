@@ -158,3 +158,9 @@ voice_models/
 
 # audio output
 output/
+
+# reports
+reports/
+
+# temp files
+.tmp/
