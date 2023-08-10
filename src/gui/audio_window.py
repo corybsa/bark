@@ -11,30 +11,26 @@ class AudioWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'audio_window'
-    self.pyAudio = pa.PyAudio()
-    self.audio_duration = 0
+    self.progress_bar_tag = 'playback_progress_bar'
+    self.progress_bar_label = 'progress_bar_label'
+    self.total_audio_duration = 0.0
     self.playback_position = 0
 
     with dpg.window(label='Audio', tag=self.tag, show=False, pos=[400, 20]):
       self.create_audio_controls()
   
 
-  def __del__(self):
-    self.pyAudio.terminate()
-  
-
   def create_audio_controls(self):
-    dpg.add_progress_bar(
-      label='progress bar',
-      default_value=self.playback_position,
-      overlay='00:00'
-    )
+    with dpg.group(horizontal=True):
+      dpg.add_progress_bar(
+        label='progress bar',
+        tag=self.progress_bar_tag,
+        default_value=self.playback_position,
+        overlay='',
+        width=100
+      )
 
-    dpg.add_slider_int(
-      label='slider',
-      default_value=self.playback_position,
-      enabled=False
-    )
+      dpg.add_text(f'00:00/{self.get_time(self.total_audio_duration)}', tag=self.progress_bar_label)
     
     with dpg.group(horizontal=True):
       dpg.add_button(
@@ -52,7 +48,7 @@ class AudioWindow(BaseWindow):
     try:
       with wave.open(self.generator.get_temp_audio_file(), 'rb') as wf:
         total_frames = wf.getnframes()
-        self.audio_duration = wf.getnframes() / wf.getframerate()
+        self.total_audio_duration = wf.getnframes() / wf.getframerate()
         self.playback_position = 0
 
         # Define callback for playback (1)
@@ -60,7 +56,11 @@ class AudioWindow(BaseWindow):
           data = wf.readframes(frame_count)
           current_frame = wf.tell()
           playback_percentage = current_frame / total_frames
-          self.playback_position = int(playback_percentage * self.audio_duration)
+          self.playback_position = int(playback_percentage * self.total_audio_duration)
+
+          dpg.set_value(self.progress_bar_tag, self.playback_position / int(self.total_audio_duration))
+          dpg.set_value(self.progress_bar_label, f'{self.get_time(self.playback_position)}/{self.get_time(self.total_audio_duration)}')
+          
           return (data, pa.paContinue)
 
         p = pa.PyAudio()
@@ -81,4 +81,10 @@ class AudioWindow(BaseWindow):
         p.terminate()
     except FileNotFoundError:
       print('No audio file found')
+  
+
+  def get_time(self, num: int):
+    min = int(num / 60)
+    sec = int(num % 60)
+    return f'{min:02d}:{sec:02d}'
 
