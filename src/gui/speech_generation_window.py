@@ -2,7 +2,7 @@ import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
 from .base_window import BaseWindow
 
-class VoiceGenerationWindow(BaseWindow):
+class SpeechGenerationWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'voice_generation_window'
