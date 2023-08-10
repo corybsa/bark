@@ -23,12 +23,12 @@ nuitka --mingw64 --output-dir=dist/ --output-filename=bark --follow-imports src/
 
 standalone:
 ```
-nuitka --mingw64 --standalone --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --mingw64 --standalone --disable-console --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 onefile:
 ```
-nuitka --mingw64 --onefile --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --mingw64 --onefile --disable-console --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 ## Virtual Environment
