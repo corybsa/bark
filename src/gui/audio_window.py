@@ -80,11 +80,15 @@ class AudioWindow(BaseWindow):
 
         p.terminate()
     except FileNotFoundError:
-      print('No audio file found')
+      self.open_modal('No audio file found', 'no_audio_found_modal', no_close=False)
   
 
   def get_time(self, num: int):
     min = int(num / 60)
     sec = int(num % 60)
     return f'{min:02d}:{sec:02d}'
+
+
+  def update_audio_info(self):
+    pass
 
