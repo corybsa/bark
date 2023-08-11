@@ -1,17 +1,15 @@
 import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
-import os
 from .base_window import BaseWindow
 
 class SpeechGenerationWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'voice_generation_window'
-    self.current_voice_model_label = 'current_voice_model_label'
-    self.built_in_voice_model_dialog_tag = 'built_in_voice_model_dialog'
-    self.voice_model_dialog_tag = 'voice_model_dialog'
-    self.info_modal_tag = 'info_modal'
-    self.generation_callback = None
+    self.current_voice_model_label_tag = self.get_random_tag()
+    self.built_in_voice_model_dialog_tag = self.get_random_tag()
+    self.voice_model_dialog_tag = self.get_random_tag()
+    self.info_modal_tag = self.get_random_tag()
 
     with dpg.window(label='Voice Generation', tag=self.tag, show=False, pos=[20, 20]):
       self.create_voice_model_controls()
@@ -22,12 +20,12 @@ class SpeechGenerationWindow(BaseWindow):
 
   def create_voice_model_controls(self):
     self.generator.set_voice_model('v2\\en_speaker_2')
-    dpg.add_text(f'Current voice model: {self.generator.get_voice_model_name()}', tag=self.current_voice_model_label)
+    dpg.add_text(f'Current voice model: {self.generator.get_voice_model_name()}', tag=self.current_voice_model_label_tag)
     dpg.add_separator()
 
     with dpg.group(horizontal=True):
       dpg.add_button(
-        label='Load saved voice model',
+        label='Load custom voice model',
         callback=lambda: dpg.show_item(self.voice_model_dialog_tag)
       )
 
@@ -73,6 +71,7 @@ class SpeechGenerationWindow(BaseWindow):
       tag=self.voice_model_dialog_tag,
       directory_selector=False,
       show=False,
+      default_filename='',
       width=600,
       height=400,
       file_count=1,
@@ -86,6 +85,7 @@ class SpeechGenerationWindow(BaseWindow):
       tag=self.built_in_voice_model_dialog_tag,
       directory_selector=False,
       show=False,
+      default_filename='',
       width=600,
       height=400,
       file_count=1,
@@ -106,16 +106,9 @@ class SpeechGenerationWindow(BaseWindow):
 
   def close_generate_speech_modal(self):
     dpg.delete_item(self.info_modal_tag)
-
-    if self.generation_callback is not None:
-      self.generation_callback()
   
 
   def load_voice_model(self, model_name: str):
     self.generator.set_voice_model(model_name)
-    dpg.set_value(self.current_voice_model_label, f'Current voice model: {self.generator.get_voice_model_name()}')
-
-
-  def set_generate_speech_callback(self, callback):
-    self.generation_callback = callback
+    dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.get_voice_model_name()}')
 
