@@ -15,7 +15,10 @@ class BaseWindow:
     dpg.configure_item(self.tag, show=True)
 
 
-  def open_modal(self, message: str, tag: str, no_close = True, height: Union[int, str] = 'auto', width: Union[int, str] = 'auto'):
+  def open_modal(self, message: str, tag: str = None, no_close = True, height: Union[int, str] = 'auto', width: Union[int, str] = 'auto'):
+    if tag is None:
+      tag = self.get_random_tag()
+    
     width_padding = 7
 
     if height == 'auto':
