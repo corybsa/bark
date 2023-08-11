@@ -7,43 +7,38 @@ class SaveWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'save_window'
-    self.save_file_modal = 'save_file_modal'
-    self.save_file_modal_text = 'save_file_modal_text'
+    self.save_file_dialog = 'save_file_dialog'
 
-    with dpg.window(label='Save', tag=self.tag, show=False, pos=[20, 160]):
-      self.create_voice_model_name_input()
+    with dpg.window(label='Save', tag=self.tag, show=False, pos=[20, 180]):
       self.create_buttons()
   
 
-  def create_voice_model_name_input(self):
-    dpg.add_input_text(
-      label='Voice model name',
-      tag=self.save_file_modal_text,
-      default_value=self.generator.get_voice_model_name(),
-      width=200
-    )
-  
-
   def create_buttons(self):
-    with dpg.group(horizontal=True):
-      dpg.add_button(
-        label='Save config',
-        callback=lambda: dpg.save_init_file('config.ini')
-      )
-
-      dpg.add_button(
-        label='Save current voice model',
-        callback=lambda: self.save_voice_model()
-      )
+    dpg.add_button(
+      label='Save current voice model',
+      callback=lambda: dpg.show_item(self.save_file_dialog)
+    )
+    
+    dpg.add_button(
+      label='Save window positions',
+      callback=lambda: dpg.save_init_file('bark.ini')
+    )
   
 
-  def save_voice_model(self):
-    voice_model_filename = dpg.get_value(self.save_file_modal_text)
-    saved_file = self.generator.save_voice_model(voice_model_filename)
+  def create_save_file_dialog(self):
+    with dpg.file_dialog(
+      tag=self.save_file_dialog,
+      directory_selector=False,
+      show=True,
+      width=600,
+      height=400,
+      file_count=-1,
+      default_path=self.generator.get_user_voice_models_dir(),
+      callback=lambda id, value: print(value['file_path_name'])
+    ):
+      dpg.add_file_extension('.npz')
+  
 
-    self.open_modal(
-      f'Voice model saved to\n{saved_file}',
-      self.save_file_modal,
-      no_close=False
-    )
+  def save_file(self, filename: str):
+    self.generator.save_voice_model(filename)
 
