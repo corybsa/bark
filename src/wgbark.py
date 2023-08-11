@@ -132,8 +132,6 @@ class VoiceGenerator:
       history_prompt=self.current_voice_model,
       text_temp=self.text_temp,
       waveform_temp=self.waveform_temp,
-      # TODO: uncomment this before release
-      # silent=True,
       output_full=True
     )
 

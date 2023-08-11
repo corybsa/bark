@@ -47,5 +47,5 @@ class BaseWindow:
       height=height,
       on_close=lambda: dpg.delete_item(tag)
     ):
-      dpg.add_text(message)
+      dpg.add_text(message, tag=f'{tag}_text')
 

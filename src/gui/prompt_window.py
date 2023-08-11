@@ -1,6 +1,10 @@
 import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
 from .base_window import BaseWindow
+from capturing import *
+
+
+capturing = Capturing()
 
 
 class PromptWindow(BaseWindow):
@@ -65,9 +69,30 @@ Example prompt with non-speech sounds:
       return
     
     self.open_modal('Hang tight, generating speech...', self.info_modal_tag)
+
+    capturing.on_readline(self.update_progress)
+    capturing.start()
+    
     self.generator.generate_speech(prompt, should_learn=should_learn, callback=self.close_generate_speech_modal)
-  
+
+    capturing.stop()
+
 
   def close_generate_speech_modal(self):
     dpg.delete_item(self.info_modal_tag)
+  
+
+  def update_progress(self, line: str):
+    # capturing.print("got line: " + line.split('|'))
+    line = line.split('|')
+
+    if len(line) < 3:
+      return
+
+    message = 'Hang tight, generating speech...'
+    percentage = line[0].strip().replace('%', '')
+    bar = '#' * ((len(message) * int(percentage)) // 100)
+    progress = line[2].strip().split(' ')[0].strip()
+    text = f'{message}\n{bar}\n{percentage}% {progress}'
+    dpg.set_value(f'{self.info_modal_tag}_text', text)
 
