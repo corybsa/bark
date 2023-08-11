@@ -20,7 +20,9 @@ class GenerationOptionsWindow(BaseWindow):
 
   def create_voice_model_controls(self):
     self.generator.set_voice_model('v2\\en_speaker_2')
-    dpg.add_text(f'Current voice model: {self.generator.get_voice_model_name()}', tag=self.current_voice_model_label_tag)
+    dpg.add_text(f'Current voice model: {self.generator.current_voice_model_name}', tag=self.current_voice_model_label_tag)
+
+    self.generator.add_speech_model_set_callback(self.update_voice_model_label)
 
     with dpg.group(horizontal=True):
       dpg.add_button(
@@ -82,7 +84,7 @@ This value is generally between 0.5 and 0.9 (default is 0.7)''')
       width=600,
       height=400,
       file_count=1,
-      default_path=self.generator.get_user_voice_models_dir(),
+      default_path=self.generator.voice_models_dir,
       callback=lambda id, value: self.load_voice_model(list(value['selections'])[0])
     ):
       dpg.add_file_extension('.npz')
@@ -107,5 +109,9 @@ This value is generally between 0.5 and 0.9 (default is 0.7)''')
       model_name = model_name.replace('.npz', '')
 
     self.generator.set_voice_model(model_name)
-    dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.get_voice_model_name()}')
+    self.update_voice_model_label()
+  
+
+  def update_voice_model_label(self):
+    dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.current_voice_model_name}')
 

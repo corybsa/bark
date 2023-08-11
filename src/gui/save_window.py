@@ -36,7 +36,7 @@ class SaveWindow(BaseWindow):
       width=600,
       height=400,
       file_count=-1,
-      default_path=self.generator.get_user_voice_models_dir(),
+      default_path=self.generator.voice_models_dir,
       callback=lambda id, value: self.save_file(value['file_path_name'])
     ):
       dpg.add_file_extension('.npz')

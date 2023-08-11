@@ -71,7 +71,7 @@ class AudioWindow(BaseWindow):
       width=600,
       height=400,
       file_count=-1,
-      default_path=self.generator.get_generated_output_dir(),
+      default_path=self.generator.generated_output_dir,
       callback=lambda id, value: self.save_audio_file(value['file_path_name'])
     ):
       dpg.add_file_extension('.wav')

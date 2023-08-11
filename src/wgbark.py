@@ -11,7 +11,7 @@ class VoiceGenerator:
   def __init__(self):
     self.current_voice_model = None
     self.current_voice_model_name = None
-    self.updated_voice_model = None
+    self.is_voice_model_updated = False
 
     self.text_temp = 0.7
     self.waveform_temp = 0.7
@@ -25,6 +25,7 @@ class VoiceGenerator:
     self.generated_audio_data = None
 
     self.speech_generation_callbacks = []
+    self.speech_model_set_callbacks = []
 
     Path(self.voice_models_dir).mkdir(exist_ok=True)
     Path(self.generated_output_dir).mkdir(exist_ok=True)
@@ -32,17 +33,13 @@ class VoiceGenerator:
   
 
   def __del__(self):
-    # TODO: uncomment this before release
     # delete temp files
-    # for f in os.listdir(self.temp_dir):
-    #   os.remove(os.path.join(self.temp_dir, f))
-    pass
+    for f in os.listdir(self.temp_dir):
+      os.remove(os.path.join(self.temp_dir, f))
 
 
   def preload_models(self, callback):
-    callback()
-    # TODO: uncomment this before release
-    # Thread(target=self.preload_models_thread, args=(callback,)).start()
+    Thread(target=self.preload_models_thread, args=(callback,)).start()
 
 
   def preload_models_thread(self, callback):
@@ -50,16 +47,8 @@ class VoiceGenerator:
     callback()
 
 
-  def get_user_voice_models_dir(self):
-    return self.voice_models_dir
-
-
   def get_built_in_voice_models_dir(self):
     return os.path.join(generation.CUR_PATH, 'assets', 'prompts')
-
-
-  def get_generated_output_dir(self):
-    return self.generated_output_dir
 
 
   def get_all_voice_models(self):
@@ -81,6 +70,8 @@ class VoiceGenerator:
           'coarse_prompt': data['coarse_prompt'],
           'fine_prompt': data['fine_prompt']
         }
+
+      self.current_voice_model_name = voice_model_name.replace('.npz', '')
     else:
       built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', voice_model_name + '.npz')
 
@@ -93,11 +84,10 @@ class VoiceGenerator:
         }
       
       self.current_voice_model_name = voice_model_name
+    
+    for c in self.speech_model_set_callbacks:
+      c()
   
-
-  def get_voice_model_name(self):
-    return self.current_voice_model_name
-
 
   def set_text_temp(self, value: float):
     self.text_temp = value
@@ -107,22 +97,24 @@ class VoiceGenerator:
     self.waveform_temp = value
 
 
-  def get_audio_data(self):
-    return self.generated_audio_data
-
-
   def get_temp_audio_file(self):
     return os.path.join(self.temp_dir, 'generated.wav')
 
 
   def add_speech_generation_callback(self, callback):
     self.speech_generation_callbacks.append(callback)
+  
+
+  def add_speech_model_set_callback(self, callback):
+    self.speech_model_set_callbacks.append(callback)
 
 
   def save_voice_model(self, filename: str):
     filename = filename.replace('/', '_').replace('\\', '_') + '.npz'
     filepath = os.path.join(self.voice_models_dir, filename)
     save_as_prompt(filepath, self.current_voice_model)
+    self.set_voice_model(filename)
+    self.is_voice_model_updated = False
     return os.path.abspath(filepath)
 
 
@@ -139,6 +131,7 @@ class VoiceGenerator:
 
     if should_learn:
       self.current_voice_model = model
+      self.is_voice_model_updated = True
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
