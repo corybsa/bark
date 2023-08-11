@@ -12,7 +12,7 @@ class GenerationOptionsWindow(BaseWindow):
     self.text_temp_tag = self.get_random_tag()
     self.waveform_temp_tag = self.get_random_tag()
 
-    with dpg.window(label='Speech Generation Settings', tag=self.tag, show=False, pos=[20, 20]):
+    with dpg.window(label='Speech Generation Settings', tag=self.tag, show=False, pos=[20, 20], no_close=True):
       self.create_voice_model_controls()
       self.create_temperature_controls()
       self.create_load_voice_model_dialogs()
@@ -21,7 +21,6 @@ class GenerationOptionsWindow(BaseWindow):
   def create_voice_model_controls(self):
     self.generator.set_voice_model('v2\\en_speaker_2')
     dpg.add_text(f'Current voice model: {self.generator.get_voice_model_name()}', tag=self.current_voice_model_label_tag)
-    dpg.add_separator()
 
     with dpg.group(horizontal=True):
       dpg.add_button(
@@ -33,12 +32,13 @@ class GenerationOptionsWindow(BaseWindow):
         label='Load built-in voice model',
         callback=lambda: dpg.show_item(self.built_in_voice_model_dialog_tag)
       )
+    
+    dpg.add_separator()
 
 
   def create_temperature_controls(self):
-    # TODO: add tooltip
     dpg.add_slider_float(
-      label='Text temperature',
+      label='Text temperature (?)',
       tag=self.text_temp_tag,
       default_value=0.7,
       min_value=0.0,
@@ -51,9 +51,8 @@ class GenerationOptionsWindow(BaseWindow):
     with dpg.tooltip(self.text_temp_tag):
       dpg.add_text('Text temperature controls how random the generated speech is.\nHigher values will result in more random speech,\nlower values will result in speech that is closer to the desired prompt.')
 
-    # TODO: add tooltip
     dpg.add_slider_float(
-      label='Waveform temperature',
+      label='Waveform temperature (?)',
       tag=self.waveform_temp_tag,
       default_value=0.7,
       min_value=0.0,
@@ -92,12 +91,15 @@ class GenerationOptionsWindow(BaseWindow):
       height=400,
       file_count=1,
       default_path=self.generator.get_built_in_voice_models_dir(),
-      callback=lambda id, value: self.load_voice_model(list(value['selections'])[0])
+      callback=lambda id, value: self.load_voice_model(list(value['selections'])[0], is_built_in=True)
     ):
       dpg.add_file_extension('.npz')
   
 
-  def load_voice_model(self, model_name: str):
+  def load_voice_model(self, model_name: str, is_built_in = False):
+    if is_built_in:
+      model_name = model_name.replace('.npz', '')
+
     self.generator.set_voice_model(model_name)
     dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.get_voice_model_name()}')
 
