@@ -1,9 +1,15 @@
 from typing import Union
 import dearpygui.dearpygui as dpg
+import random
 
 
 class BaseWindow:
   tag = 'base_window'
+
+
+  def get_random_tag(self):
+    return f'{self.tag}_{random.randint(0, 1000000)}'
+
 
   def show(self):
     dpg.configure_item(self.tag, show=True)
