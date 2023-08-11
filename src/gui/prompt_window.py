@@ -15,6 +15,7 @@ class PromptWindow(BaseWindow):
     self.info_modal_tag = self.get_random_tag()
     self.generate_and_learn_tag = self.get_random_tag()
     self.prompt_hint_tag = self.get_random_tag()
+    self.generation_message = 'Hang tight, generating speech...'
 
     with dpg.window(label='Speech Generation', tag=self.tag, show=False, pos=[225, 160], no_close=True):
       self.create_prompt_input()
@@ -68,7 +69,12 @@ Example prompt with non-speech sounds:
       self.open_modal('Please enter a prompt.', no_close=False)
       return
     
-    self.open_modal('Hang tight, generating speech...', self.info_modal_tag)
+    self.generation_message = 'Hang tight, generating speech...'
+
+    if len(prompt) > self.generator.long_text_threshold:
+      self.generation_message = 'Hang tight, generating speech...\n\nThis may take a while, please be patient.'
+
+    self.open_modal(self.generation_message, self.info_modal_tag)
 
     capturing.on_readline(self.update_progress)
     capturing.start()
@@ -88,10 +94,11 @@ Example prompt with non-speech sounds:
     if len(line) < 3:
       return
 
-    message = 'Hang tight, generating speech...'
+    message = self.generation_message.split('\n')
+    message = message[len(message) - 1]
     percentage = line[0].strip().replace('%', '')
     bar = '#' * ((len(message) * int(percentage)) // 100)
     progress = line[2].strip().split(' ')[0].strip()
-    text = f'{message}\n{bar}\n{percentage}% {progress}'
+    text = f'{self.generation_message}\n{bar}\n{percentage}% {progress}'
     dpg.set_value(f'{self.info_modal_tag}_text', text)
 

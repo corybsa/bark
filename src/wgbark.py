@@ -1,10 +1,13 @@
 from bark import SAMPLE_RATE, generate_audio, preload_models, save_as_prompt, generation
+from bark.api import semantic_to_waveform
 from scipy.io.wavfile import write as write_wav
 import numpy as np
 import sys
 import os
 from pathlib import Path
 from threading import Thread
+import nltk
+nltk.download('punkt')
 
 
 class VoiceGenerator:
@@ -15,6 +18,7 @@ class VoiceGenerator:
 
     self.text_temp = 0.7
     self.waveform_temp = 0.7
+    self.long_text_threshold = 150
     
     self.bark_dir = os.path.dirname(sys.argv[0])
     self.voice_models_dir = os.path.join(self.bark_dir, 'voice_models')
@@ -119,6 +123,10 @@ class VoiceGenerator:
 
 
   def generate_speech(self, text_prompt: str, should_learn=False, callback=None):
+    if len(text_prompt) > self.long_text_threshold:
+      self.generate_long_speech(text_prompt, should_learn, callback)
+      return
+
     (model, audio) = generate_audio(
       text_prompt,
       history_prompt=self.current_voice_model,
@@ -132,6 +140,33 @@ class VoiceGenerator:
     if should_learn:
       self.current_voice_model = model
       self.is_voice_model_updated = True
+
+    filepath = os.path.join(self.temp_dir, 'generated.wav')
+    write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
+
+    callback()
+
+    for c in self.speech_generation_callbacks:
+      c()
+
+
+  def generate_long_speech(self, text_prompt: str, should_learn=False, callback=None):
+    sentences = nltk.sent_tokenize(text_prompt.replace('\n', ' ').strip())
+    silence = np.zeros(int(0.25 * SAMPLE_RATE)) # quarter second of silence
+    pieces = []
+
+    for sentence in sentences:
+      semantic_tokens = generation.generate_text_semantic(
+        sentence,
+        history_prompt=self.current_voice_model,
+        temp=self.text_temp,
+        min_eos_p=0.05 # this controls how likely the generation is to end
+      )
+
+      audio_array = semantic_to_waveform(semantic_tokens, history_prompt=self.current_voice_model)
+      pieces += [audio_array, silence.copy()]
+    
+    self.generated_audio_data = np.concatenate(pieces)
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
