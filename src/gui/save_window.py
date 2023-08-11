@@ -10,7 +10,7 @@ class SaveWindow(BaseWindow):
     self.tag = 'save_window'
     self.save_file_dialog_tag = self.get_random_tag()
 
-    with dpg.window(label='Save', tag=self.tag, show=False, pos=[20, 160]):
+    with dpg.window(label='Save', tag=self.tag, show=False, pos=[20, 160], no_close=True):
       self.create_save_file_dialog()
       self.create_buttons()
   
