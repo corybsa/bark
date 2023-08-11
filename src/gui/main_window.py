@@ -17,6 +17,10 @@ class MainWindow:
     self.audio_window = None
 
     dpg.create_context()
+
+    if(os.path.isfile('bark.ini') and os.path.exists('bark.ini')):
+      dpg.configure_app(init_file='bark.ini')
+    
     dpg.create_viewport(
       title='Wakeful Games Text to Speech Generator',
       width=800,
