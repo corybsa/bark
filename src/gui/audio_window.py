@@ -4,20 +4,31 @@ from wgbark import VoiceGenerator
 from .base_window import BaseWindow
 import wave
 import time
-import sys
 import pyaudio as pa
+import os
 
 class AudioWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'audio_window'
-    self.progress_bar_tag = 'playback_progress_bar'
-    self.progress_bar_label = 'progress_bar_label'
+    self.progress_bar_tag = self.get_random_tag()
+    self.progress_bar_label_tag = self.get_random_tag()
+    self.save_file_dialog_tag = self.get_random_tag()
+    self.is_audio_file_loaded = False
     self.total_audio_duration = 0.0
     self.playback_position = 0
 
-    with dpg.window(label='Audio', tag=self.tag, show=False, pos=[400, 20]):
+    self.generator.add_speech_generation_callback(self.update_audio_info)
+    self.generator.add_speech_generation_callback(lambda: self.set_is_audio_file_loaded(True))
+
+    with dpg.window(label='Audio', tag=self.tag, show=False, pos=[410, 20]):
       self.create_audio_controls()
+      self.create_save_file_dialog()
+  
+
+  def set_is_audio_file_loaded(self, is_audio_file_loaded: bool):
+    self.is_audio_file_loaded = is_audio_file_loaded
+    print(self.is_audio_file_loaded)
   
 
   def create_audio_controls(self):
@@ -30,7 +41,7 @@ class AudioWindow(BaseWindow):
         width=100
       )
 
-      dpg.add_text(f'00:00/{self.get_time(self.total_audio_duration)}', tag=self.progress_bar_label)
+      dpg.add_text(f'00:00/{self.get_time(self.total_audio_duration)}', tag=self.progress_bar_label_tag)
     
     with dpg.group(horizontal=True):
       dpg.add_button(
@@ -40,8 +51,31 @@ class AudioWindow(BaseWindow):
 
       dpg.add_button(
         label='Save audio to file',
-        callback=lambda: print('not implemented yet')
+        callback=lambda: self.open_save_file_dialog()
       )
+  
+
+  def open_save_file_dialog(self):
+    if not self.is_audio_file_loaded:
+      self.open_modal('No audio file loaded', no_close=False)
+      return
+    
+    dpg.show_item(self.save_file_dialog_tag)
+  
+
+  def create_save_file_dialog(self):
+    with dpg.file_dialog(
+      tag=self.save_file_dialog_tag,
+      directory_selector=False,
+      show=False,
+      default_filename='',
+      width=600,
+      height=400,
+      file_count=-1,
+      default_path=self.generator.get_generated_output_dir(),
+      callback=lambda id, value: self.save_audio_file(value['file_path_name'])
+    ):
+      dpg.add_file_extension('.wav')
   
 
   def play_audio_file(self):
@@ -59,7 +93,7 @@ class AudioWindow(BaseWindow):
           self.playback_position = int(playback_percentage * self.total_audio_duration)
 
           dpg.set_value(self.progress_bar_tag, self.playback_position / int(self.total_audio_duration))
-          dpg.set_value(self.progress_bar_label, f'{self.get_time(self.playback_position)}/{self.get_time(self.total_audio_duration)}')
+          dpg.set_value(self.progress_bar_label_tag, f'{self.get_time(self.playback_position)}/{self.get_time(self.total_audio_duration)}')
           
           return (data, pa.paContinue)
 
@@ -80,7 +114,8 @@ class AudioWindow(BaseWindow):
 
         p.terminate()
     except FileNotFoundError:
-      self.open_modal('No audio file found', 'no_audio_found_modal', no_close=False)
+      self.open_modal('No audio file loaded', no_close=False)
+      self.reset_audio_info()
   
 
   def get_time(self, num: int):
@@ -90,5 +125,33 @@ class AudioWindow(BaseWindow):
 
 
   def update_audio_info(self):
-    pass
+    try:
+      with wave.open(self.generator.get_temp_audio_file(), 'rb') as wf:
+        self.total_audio_duration = wf.getnframes() / wf.getframerate()
+        self.playback_position = 0
+
+        dpg.set_value(self.progress_bar_tag, self.playback_position / int(self.total_audio_duration))
+        dpg.set_value(self.progress_bar_label_tag, f'{self.get_time(self.playback_position)}/{self.get_time(self.total_audio_duration)}')
+        self.set_is_audio_file_loaded(True)
+    except FileNotFoundError:
+      self.open_modal('No audio file found', no_close=False)
+      self.reset_audio_info()
+  
+
+  def save_audio_file(self, file_path: str):
+    try:
+      os.rename(self.generator.get_temp_audio_file(), file_path)
+      self.open_modal(f'Audio saved to\n{file_path}', no_close=False)
+      self.reset_audio_info()
+    except FileNotFoundError:
+      self.open_modal('No audio file loaded', no_close=False)
+      self.reset_audio_info()
+  
+
+  def reset_audio_info(self):
+    self.playback_position = 0
+    self.total_audio_duration = 0
+    dpg.set_value(self.progress_bar_tag, 0)
+    dpg.set_value(self.progress_bar_label_tag, f'00:00/00:00')
+    self.set_is_audio_file_loaded(False)
 
