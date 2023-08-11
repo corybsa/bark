@@ -83,7 +83,6 @@ Example prompt with non-speech sounds:
   
 
   def update_progress(self, line: str):
-    # capturing.print("got line: " + line.split('|'))
     line = line.split('|')
 
     if len(line) < 3:
