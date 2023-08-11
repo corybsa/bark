@@ -12,6 +12,7 @@ class VoiceGenerator:
     self.is_using_built_in_model = True
     self.current_voice_model = None
     self.current_voice_model_name = None
+    self.updated_voice_model = None
 
     self.text_temp = 0.7
     self.waveform_temp = 0.7
@@ -143,7 +144,7 @@ class VoiceGenerator:
       return os.path.abspath(filepath)
 
 
-  def generate_voice_model(self, text_prompt: str, callback=None):
+  def generate_speech(self, text_prompt: str, callback=None):
     (model, audio) = generate_audio(
       text_prompt,
       history_prompt=self.current_voice_model_name if self.is_using_built_in_model else self.current_voice_model,
@@ -156,6 +157,7 @@ class VoiceGenerator:
 
     self.generated_audio_data = audio
     self.current_voice_model = model
+    self.updated_voice_model = model
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))

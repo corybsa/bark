@@ -3,8 +3,9 @@ from wgbark import VoiceGenerator
 import os
 from .base_window import BaseWindow
 from .save_window import SaveWindow
-from .speech_generation_window import SpeechGenerationWindow
+from .generation_options_window import GenerationOptionsWindow
 from .audio_window import AudioWindow
+from .prompt_window import PromptWindow
 
 
 class MainWindow(BaseWindow):
@@ -12,9 +13,10 @@ class MainWindow(BaseWindow):
     self.generator = VoiceGenerator()
     self.preload_modal_tag = self.get_random_tag()
     self.preload_modal_text_tag = self.get_random_tag()
-    self.voice_generation_window = None
+    self.generation_options_window = None
     self.save_window = None
     self.audio_window = None
+    self.prompt_window = None
 
     dpg.create_context()
 
@@ -36,9 +38,10 @@ class MainWindow(BaseWindow):
 
 
   def create_windows(self):
-    self.voice_generation_window = SpeechGenerationWindow(self.generator)
+    self.generation_options_window = GenerationOptionsWindow(self.generator)
     self.audio_window = AudioWindow(self.generator)
     self.save_window = SaveWindow(self.generator)
+    self.prompt_window = PromptWindow(self.generator)
 
     self.create_preload_modal()
 
@@ -53,7 +56,8 @@ class MainWindow(BaseWindow):
 
   def preload_done(self):
     dpg.delete_item(self.preload_modal_text_tag)
-    self.voice_generation_window.show()
+    self.generation_options_window.show()
     self.save_window.show()
     self.audio_window.show()
+    self.prompt_window.show()
 

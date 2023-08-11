@@ -2,19 +2,19 @@ import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
 from .base_window import BaseWindow
 
-class SpeechGenerationWindow(BaseWindow):
+class GenerationOptionsWindow(BaseWindow):
   def __init__(self, generator: VoiceGenerator):
     self.generator = generator
     self.tag = 'voice_generation_window'
     self.current_voice_model_label_tag = self.get_random_tag()
     self.built_in_voice_model_dialog_tag = self.get_random_tag()
     self.voice_model_dialog_tag = self.get_random_tag()
-    self.info_modal_tag = self.get_random_tag()
+    self.text_temp_tag = self.get_random_tag()
+    self.waveform_temp_tag = self.get_random_tag()
 
-    with dpg.window(label='Voice Generation', tag=self.tag, show=False, pos=[20, 20]):
+    with dpg.window(label='Speech Generation Settings', tag=self.tag, show=False, pos=[20, 20]):
       self.create_voice_model_controls()
       self.create_temperature_controls()
-      self.create_buttons()
       self.create_load_voice_model_dialogs()
 
 
@@ -36,8 +36,10 @@ class SpeechGenerationWindow(BaseWindow):
 
 
   def create_temperature_controls(self):
+    # TODO: add tooltip
     dpg.add_slider_float(
       label='Text temperature',
+      tag=self.text_temp_tag,
       default_value=0.7,
       min_value=0.0,
       max_value=1.0,
@@ -46,8 +48,13 @@ class SpeechGenerationWindow(BaseWindow):
       callback=lambda id, value: self.generator.set_text_temp(value)
     )
 
+    with dpg.tooltip(self.text_temp_tag):
+      dpg.add_text('Text temperature controls how random the generated speech is.\nHigher values will result in more random speech,\nlower values will result in speech that is closer to the desired prompt.')
+
+    # TODO: add tooltip
     dpg.add_slider_float(
       label='Waveform temperature',
+      tag=self.waveform_temp_tag,
       default_value=0.7,
       min_value=0.0,
       max_value=1.0,
@@ -55,14 +62,9 @@ class SpeechGenerationWindow(BaseWindow):
       width=200,
       callback=lambda id, value: self.generator.set_waveform_temp(value)
     )
-  
 
-  def create_buttons(self):
-    with dpg.group(horizontal=True):
-      dpg.add_button(
-        label='Generate speech',
-        callback=lambda: self.generate_speech()
-      )
+    with dpg.tooltip(self.waveform_temp_tag):
+      dpg.add_text('Waveform temperature controls how random the generated audio is.\nHigher values will result in more random noises,\nlower values will result in less random noises.')
   
 
   def create_load_voice_model_dialogs(self):
@@ -93,19 +95,6 @@ class SpeechGenerationWindow(BaseWindow):
       callback=lambda id, value: self.load_voice_model(list(value['selections'])[0])
     ):
       dpg.add_file_extension('.npz')
-
-
-  def generate_speech(self):
-    self.open_modal('Hang tight, generating speech...', self.info_modal_tag)
-
-    self.generator.generate_voice_model(
-      'this is a test from dear pie gooey',
-      callback=self.close_generate_speech_modal
-    )
-  
-
-  def close_generate_speech_modal(self):
-    dpg.delete_item(self.info_modal_tag)
   
 
   def load_voice_model(self, model_name: str):
