@@ -49,7 +49,10 @@ class GenerationOptionsWindow(BaseWindow):
     )
 
     with dpg.tooltip(self.text_temp_tag):
-      dpg.add_text('Text temperature controls how random the generated speech is.\nHigher values will result in more random speech,\nlower values will result in speech that is closer to the desired prompt.')
+      dpg.add_text('''This parameter determines the creativity and diversity of the speech generated.
+Higher values will allow the model to take more risks and to be more creative with its word choice,
+lower values will result in speech that is closer to the entered prompt.
+This value is generally between 0.5 and 0.9 (default is 0.7)''')
 
     dpg.add_slider_float(
       label='Waveform temperature (?)',
@@ -63,7 +66,10 @@ class GenerationOptionsWindow(BaseWindow):
     )
 
     with dpg.tooltip(self.waveform_temp_tag):
-      dpg.add_text('Waveform temperature controls how random the generated audio is.\nHigher values will result in more random noises,\nlower values will result in less random noises.')
+      dpg.add_text('''Waveform temperature controls how random the generated audio is.
+Higher values will result in more random noises (music, people in the background, etc.),
+lower values will result in less random noises.
+This value is generally between 0.5 and 0.9 (default is 0.7)''')
   
 
   def create_load_voice_model_dialogs(self):
