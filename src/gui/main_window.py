@@ -1,5 +1,6 @@
 import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
+import os
 from .save_window import SaveWindow
 from .speech_generation_window import SpeechGenerationWindow
 from .audio_window import AudioWindow
@@ -36,9 +37,12 @@ class MainWindow:
 
 
   def create_windows(self):
-    self.voice_generation_window = SpeechGenerationWindow(self.generator)
     self.save_window = SaveWindow(self.generator)
     self.audio_window = AudioWindow(self.generator)
+    self.voice_generation_window = SpeechGenerationWindow(self.generator)
+
+    self.voice_generation_window.set_generate_speech_callback(self.voice_generation_done)
+
     self.create_preload_modal()
 
 
@@ -55,4 +59,8 @@ class MainWindow:
     self.voice_generation_window.show()
     self.save_window.show()
     self.audio_window.show()
+  
+
+  def voice_generation_done(self):
+    print('done')
 
