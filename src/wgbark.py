@@ -75,6 +75,7 @@ class VoiceGenerator:
       self.current_voice_model = os.path.join(self.voice_models_dir, voice_model_name)
       self.is_using_built_in_model = False
 
+      # load custom voice model
       with np.load(os.path.join(self.voice_models_dir, voice_model_name)) as data:
         self.current_voice_model_name = voice_model_name.replace('.npz', '')
         self.current_voice_model = {
@@ -85,15 +86,6 @@ class VoiceGenerator:
     else:
       self.current_voice_model_name = voice_model_name
       self.is_using_built_in_model = True
-      
-    print(f'DEBUG: Loaded voice model: {voice_model_name}')
-
-
-  def get_voice_model(self):
-    if self.is_using_built_in_model:
-      return self.current_voice_model_name
-    else:
-      return self.current_voice_model
   
 
   def get_voice_model_name(self):
@@ -126,6 +118,7 @@ class VoiceGenerator:
       filepath = os.path.join(self.voice_models_dir, filename)
       built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', self.current_voice_model_name + '.npz')
 
+      # load built-in voice model
       with np.load(built_in_model) as data:
         self.current_voice_model = {
           'semantic_prompt': data['semantic_prompt'],
@@ -133,7 +126,10 @@ class VoiceGenerator:
           'fine_prompt': data['fine_prompt']
         }
 
+      # save as a custom voice model
       save_as_prompt(filepath, self.current_voice_model)
+
+      # load the custom voice model
       self.set_voice_model(filename)
 
       return os.path.abspath(filepath)
@@ -144,10 +140,20 @@ class VoiceGenerator:
       return os.path.abspath(filepath)
 
 
-  def generate_speech(self, text_prompt: str, callback=None):
+  def generate_speech(self, text_prompt: str, should_learn=False, callback=None):
+    prompt_model = self.current_voice_model_name
+
+    if self.is_using_built_in_model:
+      prompt_model = self.current_voice_model_name
+    else:
+      prompt_model = self.current_voice_model
+    
+    if should_learn and self.updated_voice_model is not None:
+      prompt_model = self.updated_voice_model
+
     (model, audio) = generate_audio(
       text_prompt,
-      history_prompt=self.current_voice_model_name if self.is_using_built_in_model else self.current_voice_model,
+      history_prompt=prompt_model,
       text_temp=self.text_temp,
       waveform_temp=self.waveform_temp,
       # TODO: uncomment this before release
@@ -156,12 +162,12 @@ class VoiceGenerator:
     )
 
     self.generated_audio_data = audio
-    self.current_voice_model = model
-    self.updated_voice_model = model
+
+    if should_learn:
+      self.updated_voice_model = model
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
-    print(f'DEBUG: generated audio saved to {filepath}')
 
     callback()
 
