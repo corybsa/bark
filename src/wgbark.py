@@ -48,6 +48,14 @@ class VoiceGenerator:
     callback()
 
 
+  def get_user_voice_models_dir(self):
+    return self.voice_models_dir
+
+
+  def get_built_in_voice_models_dir(self):
+    return os.path.join(generation.CUR_PATH, 'assets', 'prompts')
+
+
   def get_all_voice_models(self):
     voices = [f for f in os.listdir(self.voice_models_dir) if os.path.isfile(os.path.join(self.voice_models_dir, f)) and f.endswith('.npz')]
     voices += list(sorted(generation.ALLOWED_PROMPTS))
