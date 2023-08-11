@@ -1,18 +1,17 @@
 import dearpygui.dearpygui as dpg
 from wgbark import VoiceGenerator
 import os
+from .base_window import BaseWindow
 from .save_window import SaveWindow
 from .speech_generation_window import SpeechGenerationWindow
 from .audio_window import AudioWindow
 
 
-class MainWindow:
+class MainWindow(BaseWindow):
   def __init__(self):
     self.generator = VoiceGenerator()
-    self.preload_modal = 'preload_modal'
-    self.preload_modal_text = 'preload_modal_text'
-    self.progress_bar = 'progress_bar'
-    self.save_file_modal = 'save_file_modal'
+    self.preload_modal_tag = self.get_random_tag()
+    self.preload_modal_text_tag = self.get_random_tag()
     self.voice_generation_window = None
     self.save_window = None
     self.audio_window = None
@@ -37,11 +36,9 @@ class MainWindow:
 
 
   def create_windows(self):
-    self.save_window = SaveWindow(self.generator)
-    self.audio_window = AudioWindow(self.generator)
     self.voice_generation_window = SpeechGenerationWindow(self.generator)
-
-    self.voice_generation_window.set_generate_speech_callback(self.voice_generation_done)
+    self.audio_window = AudioWindow(self.generator)
+    self.save_window = SaveWindow(self.generator)
 
     self.create_preload_modal()
 
@@ -49,18 +46,14 @@ class MainWindow:
   def create_preload_modal(self):
     self.generator.preload_models(self.preload_done)
 
-    with dpg.window(label='Voices loading...', show=True, tag=self.preload_modal):
-      dpg.set_primary_window(self.preload_modal, True)
-      dpg.add_text('Preloading models, please wait...', tag=self.preload_modal_text)
+    with dpg.window(label='Voices loading...', show=True, tag=self.preload_modal_tag):
+      dpg.set_primary_window(self.preload_modal_tag, True)
+      dpg.add_text('Preloading models, please wait...', tag=self.preload_modal_text_tag)
   
 
   def preload_done(self):
-    dpg.delete_item(self.preload_modal_text)
+    dpg.delete_item(self.preload_modal_text_tag)
     self.voice_generation_window.show()
     self.save_window.show()
     self.audio_window.show()
-  
-
-  def voice_generation_done(self):
-    print('done')
 
