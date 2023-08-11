@@ -24,6 +24,8 @@ class VoiceGenerator:
     self.save_as_name = 'custom voice model'
     self.generated_audio_data = None
 
+    self.speech_generation_callbacks = []
+
     Path(self.voice_models_dir).mkdir(exist_ok=True)
     Path(self.generated_output_dir).mkdir(exist_ok=True)
     Path(self.temp_dir).mkdir(exist_ok=True)
@@ -54,6 +56,10 @@ class VoiceGenerator:
 
   def get_built_in_voice_models_dir(self):
     return os.path.join(generation.CUR_PATH, 'assets', 'prompts')
+
+
+  def get_generated_output_dir(self):
+    return self.generated_output_dir
 
 
   def get_all_voice_models(self):
@@ -109,6 +115,10 @@ class VoiceGenerator:
     return os.path.join(self.temp_dir, 'generated.wav')
 
 
+  def add_speech_generation_callback(self, callback):
+    self.speech_generation_callbacks.append(callback)
+
+
   def save_voice_model(self, filename: str):
     if self.is_using_built_in_model:
       filename = filename.replace('/', '_').replace('\\', '_') + '.npz'
@@ -152,6 +162,9 @@ class VoiceGenerator:
     print(f'DEBUG: generated audio saved to {filepath}')
 
     callback()
+
+    for c in self.speech_generation_callbacks:
+      c()
   
 
   def float2pcm(self, sig, dtype='int16'):
