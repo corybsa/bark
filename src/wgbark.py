@@ -9,7 +9,6 @@ from threading import Thread
 
 class VoiceGenerator:
   def __init__(self):
-    self.is_using_built_in_model = True
     self.current_voice_model = None
     self.current_voice_model_name = None
     self.updated_voice_model = None
@@ -73,7 +72,6 @@ class VoiceGenerator:
     # if voice_model_name ends with .npz, it's a custom voice model
     if(voice_model_name.endswith('.npz')):
       self.current_voice_model = os.path.join(self.voice_models_dir, voice_model_name)
-      self.is_using_built_in_model = False
 
       # load custom voice model
       with np.load(os.path.join(self.voice_models_dir, voice_model_name)) as data:
@@ -84,8 +82,17 @@ class VoiceGenerator:
           'fine_prompt': data['fine_prompt']
         }
     else:
+      built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', voice_model_name + '.npz')
+
+      # load built-in voice model
+      with np.load(built_in_model) as data:
+        self.current_voice_model = {
+          'semantic_prompt': data['semantic_prompt'],
+          'coarse_prompt': data['coarse_prompt'],
+          'fine_prompt': data['fine_prompt']
+        }
+      
       self.current_voice_model_name = voice_model_name
-      self.is_using_built_in_model = True
   
 
   def get_voice_model_name(self):
@@ -113,47 +120,16 @@ class VoiceGenerator:
 
 
   def save_voice_model(self, filename: str):
-    if self.is_using_built_in_model:
-      filename = filename.replace('/', '_').replace('\\', '_') + '.npz'
-      filepath = os.path.join(self.voice_models_dir, filename)
-      built_in_model = os.path.join(generation.CUR_PATH, 'assets', 'prompts', self.current_voice_model_name + '.npz')
-
-      # load built-in voice model
-      with np.load(built_in_model) as data:
-        self.current_voice_model = {
-          'semantic_prompt': data['semantic_prompt'],
-          'coarse_prompt': data['coarse_prompt'],
-          'fine_prompt': data['fine_prompt']
-        }
-
-      # save as a custom voice model
-      save_as_prompt(filepath, self.current_voice_model)
-
-      # load the custom voice model
-      self.set_voice_model(filename)
-
-      return os.path.abspath(filepath)
-    else:
-      filename = filename.replace('/', '_').replace('\\', '_') + '.npz'
-      filepath = os.path.join(self.voice_models_dir, filename)
-      save_as_prompt(filepath, self.current_voice_model)
-      return os.path.abspath(filepath)
+    filename = filename.replace('/', '_').replace('\\', '_') + '.npz'
+    filepath = os.path.join(self.voice_models_dir, filename)
+    save_as_prompt(filepath, self.current_voice_model)
+    return os.path.abspath(filepath)
 
 
   def generate_speech(self, text_prompt: str, should_learn=False, callback=None):
-    prompt_model = self.current_voice_model_name
-
-    if self.is_using_built_in_model:
-      prompt_model = self.current_voice_model_name
-    else:
-      prompt_model = self.current_voice_model
-    
-    if should_learn and self.updated_voice_model is not None:
-      prompt_model = self.updated_voice_model
-
     (model, audio) = generate_audio(
       text_prompt,
-      history_prompt=prompt_model,
+      history_prompt=self.current_voice_model,
       text_temp=self.text_temp,
       waveform_temp=self.waveform_temp,
       # TODO: uncomment this before release
@@ -164,7 +140,7 @@ class VoiceGenerator:
     self.generated_audio_data = audio
 
     if should_learn:
-      self.updated_voice_model = model
+      self.current_voice_model = model
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
