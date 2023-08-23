@@ -16,19 +16,14 @@ pip install -r requirements.txt
 ## Building From Source
 
 ### Nuitka
-debug:
-```
-nuitka --mingw64 --include-package-data=bark --output-dir=dist/ --output-filename=bark --follow-imports src/main.py
-```
-
 standalone:
 ```
-nuitka --mingw64 --standalone --include-package-data=bark --disable-console --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --msvc="14.3" --lto=no --standalone --include-package-data=bark --noinclude-data-files="torch/include" --noinclude-data-files="torch/lib" --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 onefile:
 ```
-nuitka --mingw64 --onefile --include-package-data=bark --disable-console --output-dir=dist/ --output-filename=bark src/main.py
+tbd
 ```
 
 ## Virtual Environment
