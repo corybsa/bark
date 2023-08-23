@@ -113,5 +113,5 @@ This value is generally between 0.5 and 0.9 (default is 0.7)''')
   
 
   def update_voice_model_label(self):
-    dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.current_voice_model_name}' + '*' if self.generator.is_voice_model_updated else '')
+    dpg.set_value(self.current_voice_model_label_tag, f'Current voice model: {self.generator.current_voice_model_name}' + ('*' if self.generator.is_voice_model_updated else ''))
 
