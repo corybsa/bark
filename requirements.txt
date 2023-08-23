@@ -21,7 +21,7 @@ MarkupSafe==2.1.2
 mpmath==1.2.1
 networkx==3.0
 nltk==3.8.1
-Nuitka==1.7.9
+Nuitka @ https://github.com/Nuitka/Nuitka/archive/develop.zip#sha256=5d50e780751efb6ae30aad69df19bd944e79e5115c025a82c1c41c91567c1c84
 numpy==1.24.1
 ordered-set==4.1.0
 packaging==23.1
