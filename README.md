@@ -6,7 +6,7 @@ python -m venv venv
 ```
 
 ### Install Torch and CUDA
-!!! This needs to be done before installing pip requirements, because pip will think that torch is already installed and not install the correct version.
+!!! This needs to be done before installing pip requirements, because pip will think that torch is already installed and not install the correct version. !!!
 
 Go to [https://pytorch.org/get-started/locally/](), choose the appropriate options, and run the command that is generated.
 
