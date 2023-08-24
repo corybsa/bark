@@ -90,7 +90,25 @@ class VoiceGenerator:
       
       self.current_voice_model_name = voice_model_name
     
+    self.temp_voice_model = None
+    self.is_voice_model_updated = False
+    self.dispatch_speech_model_set_callbacks()
+  
+
+  def update_current_voice_model_with_temp(self):
+    if self.temp_voice_model is not None:
+      self.current_voice_model = self.temp_voice_model
+      self.is_voice_model_updated = True
+      self.dispatch_speech_model_set_callbacks()
+  
+
+  def dispatch_speech_model_set_callbacks(self):
     for c in self.speech_model_set_callbacks:
+      c()
+  
+
+  def dispatch_speech_generation_callbacks(self):
+    for c in self.speech_generation_callbacks:
       c()
   
 
@@ -141,14 +159,15 @@ class VoiceGenerator:
     if should_learn:
       self.current_voice_model = model
       self.is_voice_model_updated = True
+    else:
+      self.temp_voice_model = model
 
     filepath = os.path.join(self.temp_dir, 'generated.wav')
     write_wav(filepath, SAMPLE_RATE, self.float2pcm(self.generated_audio_data))
 
     callback()
 
-    for c in self.speech_generation_callbacks:
-      c()
+    self.dispatch_speech_generation_callbacks()
 
 
   def generate_long_speech(self, text_prompt: str, should_learn=False, callback=None):
@@ -170,6 +189,8 @@ class VoiceGenerator:
       if should_learn:
         self.current_voice_model = model
         self.is_voice_model_updated = True
+      else:
+        self.temp_voice_model = model
     
     self.generated_audio_data = np.concatenate(pieces)
 
@@ -178,8 +199,7 @@ class VoiceGenerator:
 
     callback()
 
-    for c in self.speech_generation_callbacks:
-      c()
+    self.dispatch_speech_generation_callbacks()
   
 
   def float2pcm(self, sig, dtype='int16'):
