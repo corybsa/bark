@@ -14,6 +14,7 @@ class AudioWindow(BaseWindow):
     self.progress_bar_tag = self.get_random_tag()
     self.progress_bar_label_tag = self.get_random_tag()
     self.save_file_dialog_tag = self.get_random_tag()
+    self.update_voice_model_button_tag = self.get_random_tag()
     self.is_audio_file_loaded = False
     self.total_audio_duration = 0.0
     self.playback_position = 0
@@ -52,6 +53,14 @@ class AudioWindow(BaseWindow):
         label='Save audio to file',
         callback=lambda: self.open_save_file_dialog()
       )
+    
+    dpg.add_button(label='Update current voice model', tag=self.update_voice_model_button_tag, callback=lambda: self.generator.update_current_voice_model_with_temp())
+
+    with dpg.tooltip(self.update_voice_model_button_tag):
+      dpg.add_text('''An updated voice model was generated along with the speech audio.
+Click this button to update the current voice model with the updated voice model.
+Note: the updated voice model is not automatically saved to file.
+''')
   
 
   def open_save_file_dialog(self):
