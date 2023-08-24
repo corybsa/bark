@@ -14,6 +14,7 @@ class VoiceGenerator:
   def __init__(self):
     self.current_voice_model = None
     self.current_voice_model_name = None
+    self.temp_voice_model = None
     self.is_voice_model_updated = False
 
     self.text_temp = 0.7
@@ -163,8 +164,12 @@ class VoiceGenerator:
         min_eos_p=0.05 # this controls how likely the generation is to end
       )
 
-      audio_array = semantic_to_waveform(semantic_tokens, history_prompt=self.current_voice_model)
-      pieces += [audio_array, silence.copy()]
+      (model, audio) = semantic_to_waveform(semantic_tokens, history_prompt=self.current_voice_model, output_full=True)
+      pieces += [audio, silence.copy()]
+
+      if should_learn:
+        self.current_voice_model = model
+        self.is_voice_model_updated = True
     
     self.generated_audio_data = np.concatenate(pieces)
 
