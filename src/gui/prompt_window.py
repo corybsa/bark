@@ -15,9 +15,11 @@ class PromptWindow(BaseWindow):
     self.info_modal_tag = self.get_random_tag()
     self.generate_and_learn_tag = self.get_random_tag()
     self.prompt_hint_tag = self.get_random_tag()
+    self.input_length_tag = self.get_random_tag()
+    self.input_length_hint_tag = self.get_random_tag()
     self.generation_message = 'Hang tight, generating speech...'
 
-    with dpg.window(label='Speech Generation', tag=self.tag, show=False, pos=[225, 160], no_close=True):
+    with dpg.window(label='Speech Generation', tag=self.tag, show=False, pos=[20, 160], no_close=True):
       self.create_prompt_input()
       self.create_buttons()
   
@@ -48,10 +50,20 @@ Example prompt with non-speech sounds:
     dpg.add_input_text(
       tag=self.prompt_tag,
       multiline=True,
-      width=500,
+      tracked=True,
+      width=785,
+      height=200,
       default_value='',
-      hint='Enter your prompt here...'
+      hint='Enter your prompt here...',
+      callback=lambda sender, data: dpg.set_value(self.input_length_tag, f'Characters: {len(data)}/{self.generator.long_text_threshold}')
     )
+
+    with dpg.group(horizontal=True):
+      dpg.add_text(f'Characters: 0/{self.generator.long_text_threshold}', tag=self.input_length_tag)
+      dpg.add_text('(?)', tag=self.input_length_hint_tag)
+
+    with dpg.tooltip(self.input_length_hint_tag):
+      dpg.add_text(f'Prompts longer than {self.generator.long_text_threshold} characters will take much longer to generate, and generated speech is less predictable.')
   
 
   def create_buttons(self):
