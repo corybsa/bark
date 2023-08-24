@@ -21,7 +21,7 @@ class AudioWindow(BaseWindow):
     self.generator.add_speech_generation_callback(self.update_audio_info)
     self.generator.add_speech_generation_callback(lambda: self.set_is_audio_file_loaded(True))
 
-    with dpg.window(label='Audio Preview', tag=self.tag, show=False, pos=[420, 20], no_close=True):
+    with dpg.window(label='Audio Preview', tag=self.tag, show=False, pos=[625, 20], no_close=True):
       self.create_audio_controls()
       self.create_save_file_dialog()
   

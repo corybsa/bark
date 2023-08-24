@@ -25,7 +25,7 @@ class MainWindow(BaseWindow):
     
     dpg.create_viewport(
       title='Wakeful Games Text to Speech Generator',
-      width=800,
+      width=865,
       height=600
     )
     dpg.setup_dearpygui()
