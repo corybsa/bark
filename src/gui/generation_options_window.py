@@ -109,7 +109,6 @@ This value is generally between 0.5 and 0.9 (default is 0.7)''')
       model_name = model_name.replace('.npz', '')
 
     self.generator.set_voice_model(model_name)
-    self.update_voice_model_label()
   
 
   def update_voice_model_label(self):
