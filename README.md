@@ -34,12 +34,12 @@ I've been building with MSVC, which can be installed through Visual Studio Insta
 
 standalone:
 ```
-nuitka --msvc="14.3" --lto=no --standalone --include-package-data=bark --noinclude-data-files="torch/include" --noinclude-dlls="torch/*" --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --msvc="14.3" --lto=no --standalone --module-parameter=torch-disable-jit=no --include-package-data=bark --noinclude-data-files="torch/include" --noinclude-dlls="torch/*" --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 onefile:
 ```
-nuitka --msvc="14.3" --lto=no --onefile --disable-console --include-package-data=bark --noinclude-data-files="torch/include" --noinclude-dlls="torch/*" --output-dir=dist/ --output-filename=bark src/main.py
+nuitka --msvc="14.3" --lto=no --onefile --module-parameter=torch-disable-jit=no --disable-console --include-package-data=bark --noinclude-data-files="torch/include" --noinclude-dlls="torch/*" --output-dir=dist/ --output-filename=bark src/main.py
 ```
 
 ## Installing a fresh venv
